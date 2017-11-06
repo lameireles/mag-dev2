@@ -4,28 +4,69 @@
 
 #include "Adca.h"
 #include "Ms5525dso.h"
+#include "Pump.h"
 #include "Tcc0.h"
 #include "Twie.h"
 #include "UsartE0.h"
 #include "Utils.h"
+#include "Valves.h"
 #include <stdio.h>
 
-//============//
-//=== MAIN ===//
-//============//
+//=========================//
+//=== PRIVATE FUNCTIONS ===//
+//=========================//
 
 void flow_acq(Ms5525dso & myFlowSensor, Adca & myAdc, Tcc0 & myTimer, UsartE0 & myUsart)
 {
-	myUsart.sendString("sep=,\r\nTime [ms],Pressure [psi],Temperature [oC],O2 [mV]\r\n");
+	myUsart.sendString("sep=,\r\nTime [ms],Pressure [psi],Temperature [oC],O2 [counts]\r\n");
 	while (!(myUsart.isRXC()))
 	{
 		Ms5525dso::data_s flowData = myFlowSensor.read();
-		double o2_mV = myAdc.readChannel(Adca::CH_0)*1000./65535.;
-		snprintf(Utils::txBuf, TX_LEN, "%.3f,%.4f,%.2f,%.4f\r\n",myTimer.getTime_ms(),flowData.pressure,flowData.temperature,o2_mV);
+		uint16_t o2_counts = myAdc.readChannel(Adca::CH_0);
+		snprintf(Utils::txBuf, TX_LEN, "%.3f,%.4f,%.2f,%d\r\n",myTimer.getTime_ms(),flowData.pressure,flowData.temperature,o2_counts);
 		myUsart.sendString(Utils::txBuf);
 	}
 	myUsart.setRXC(false);
 }
+
+void start_test(Pump & myPump, Valves & myValves, Adca & myAdc, Tcc0 & myTimer, UsartE0 & myUsart)
+{
+	const uint16_t INPUT_TOGGLE_DURATION_ms = 3000;
+	const uint8_t INPUT_TOGGLE_PERIOD_ms = 50;
+	const uint16_t INPUT_CLOSE_DURATION_ms = 2000;
+	const uint8_t NUMBER_OF_READINGS = 16;
+	const uint16_t OUTPUT_OPEN_DURATIONS_ms = 5000;
+	
+	myPump.turnOn();
+	while (!(myUsart.isRXC()))
+	{
+		// Toggle input valve for specified duration and period
+		double timeFlag = myTimer.getTime_ms();
+		while (myTimer.getTime_ms() - timeFlag < INPUT_TOGGLE_DURATION_ms)
+		{
+			myValves.toggleInput();
+			Utils::delay_ms(INPUT_TOGGLE_PERIOD_ms);
+		}
+		myValves.closeInput();
+		Utils::delay_ms(INPUT_CLOSE_DURATION_ms);
+		
+		// Get sensor readings
+		uint32_t totalO2 = 0;
+		for (int i = 0; i < NUMBER_OF_READINGS; i++) totalO2 += myAdc.readChannel(Adca::CH_0);
+		snprintf(Utils::txBuf, TX_LEN, "O2 [counts] = %ld", totalO2/NUMBER_OF_READINGS);
+		myUsart.sendString(Utils::txBuf);
+		
+		// Open output for specified duration
+		myValves.openOutput();
+		Utils::delay_ms(OUTPUT_OPEN_DURATIONS_ms);
+		myValves.closeOutput();
+	}
+	myPump.turnOff();
+}
+
+//============//
+//=== MAIN ===//
+//============//
 
 int main(void)
 {
@@ -52,11 +93,19 @@ int main(void)
 	myUsart0.sendString("DONE!\r\n");
 	
 	myUsart0.sendString("Initializing ADC... ");
-	Adca myAdc(Adca::P_DIV512, Adca::G_X64, Utils::IL_HIGH);
+	Adca myAdc(Adca::P_DIV512, Utils::IL_HIGH);
 	myUsart0.sendString("DONE!\r\n");
 	
 	myUsart0.sendString("Initializing Flow Sensor...\r\n");
 	Ms5525dso myFlowSensor(Ms5525dso::OSR4096, 0x76, &myTwie, &myUsart0);
+	myUsart0.sendString("DONE!\r\n");
+	
+	myUsart0.sendString("Initializing Pump... ");
+	Pump myPump;
+	myUsart0.sendString("DONE!\r\n");
+	
+	myUsart0.sendString("Initializing Valves... ");
+	Valves myValves;
 	myUsart0.sendString("DONE!\r\n");
 
     while (true)
@@ -64,7 +113,9 @@ int main(void)
 		if (myUsart0.isRXC())
 		{
 			myUsart0.setRXC(false);
-			if (myUsart0.getChar() == 'a') flow_acq(myFlowSensor, myAdc, myTimer, myUsart0);
+			char c = myUsart0.getChar();
+			if (c == 'a') flow_acq(myFlowSensor, myAdc, myTimer, myUsart0);
+			else if (c == 'b') start_test(myPump, myValves, myAdc, myTimer, myUsart0);
 		}
 	}
 }

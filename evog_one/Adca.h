@@ -5,10 +5,11 @@
 #ifndef __ADCA_H__
 #define __ADCA_H__
 
+
 #include "Utils.h"
 
 class Adca
-{
+{	
 //================//
 //=== TYPEDEFS ===//
 //================//
@@ -163,7 +164,7 @@ public:
 //=== CONSTRUCTORS ===//
 //====================//
 public:
-	Adca(prescaler_e, gainFactor_e, Utils::interruptLevel_e);
+	Adca(prescaler_e, Utils::interruptLevel_e);
 	
 //=========================//
 //=== PRIVATE VARIABLES ===//
@@ -195,7 +196,7 @@ private:
 public:
 	static volatile bool ch0flag, ch1flag, ch2flag, ch3flag;
 	static volatile uint16_t ch0, ch1, ch2, ch3;
-
+	
 //=========================//
 //=== PRIVATE FUNCTIONS ===//
 //=========================//

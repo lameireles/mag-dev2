@@ -47,7 +47,8 @@ C_SRCS +=  \
 ../UsartE0.cpp \
 ../Utils.cpp \
 ../main.cpp \
-../Usart.cpp
+../Usart.cpp \
+../Valves.cpp
 
 
 PREPROCESSING_SRCS += 
@@ -67,7 +68,8 @@ UsartC1.o \
 UsartE0.o \
 Utils.o \
 main.o \
-Usart.o
+Usart.o \
+Valves.o
 
 OBJS_AS_ARGS +=  \
 Adca.o \
@@ -80,7 +82,8 @@ UsartC1.o \
 UsartE0.o \
 Utils.o \
 main.o \
-Usart.o
+Usart.o \
+Valves.o
 
 C_DEPS +=  \
 Adca.d \
@@ -93,7 +96,8 @@ UsartC1.d \
 UsartE0.d \
 Utils.d \
 main.d \
-Usart.d
+Usart.d \
+Valves.d
 
 C_DEPS_AS_ARGS +=  \
 Adca.d \
@@ -106,7 +110,8 @@ UsartC1.d \
 UsartE0.d \
 Utils.d \
 main.d \
-Usart.d
+Usart.d \
+Valves.d
 
 OUTPUT_FILE_PATH +=evog_one.elf
 
@@ -122,6 +127,8 @@ LINKER_SCRIPT_DEP+=
 
 
 # AVR32/GNU C Compiler
+
+
 
 
 

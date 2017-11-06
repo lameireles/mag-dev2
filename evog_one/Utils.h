@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 
-#define TX_LEN 32
+#define TX_LEN 64
 
 class Utils
 {

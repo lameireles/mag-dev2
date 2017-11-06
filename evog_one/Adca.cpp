@@ -41,10 +41,10 @@ ISR(ADCA_CH3_vect)
 //=== CONSTRUCTORS ===//
 //====================//
 
-Adca::Adca(prescaler_e prescaler, gainFactor_e gainFactor, Utils::interruptLevel_e interruptLevel)
+Adca::Adca(prescaler_e prescaler, Utils::interruptLevel_e interruptLevel)
 {
 	setPrescaler(prescaler);
-	setGainFactor(CH_0, gainFactor);
+	setConversionMode(CM_UNSIGNED);
 	setChannelInputMode(CH_0, CIM_SINGLEENDED);
 	setMuxSelectionPositiveInput(CH_0, MSPI_PIN0);
 	enableInterrupt(CH_0, interruptLevel);

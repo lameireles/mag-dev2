@@ -234,6 +234,12 @@
     <Compile Include="Usart.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="Valves.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Valves.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="vvm.h">
       <SubType>compile</SubType>
     </Compile>
