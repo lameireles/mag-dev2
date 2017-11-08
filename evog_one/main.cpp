@@ -48,6 +48,7 @@ void start_test(Pump & myPump, Valves & myValves, Adca & myAdc, Tcc0 & myTimer, 
 			myValves.toggleInput();
 			Utils::delay_ms(INPUT_TOGGLE_PERIOD_ms);
 		}
+		myPump.turnOff();
 		myValves.closeInput();
 		Utils::delay_ms(INPUT_CLOSE_DURATION_ms);
 		
@@ -59,6 +60,7 @@ void start_test(Pump & myPump, Valves & myValves, Adca & myAdc, Tcc0 & myTimer, 
 		
 		// Open output for specified duration
 		myValves.openOutput();
+		myPump.turnOn();
 		Utils::delay_ms(OUTPUT_OPEN_DURATIONS_ms);
 		myValves.closeOutput();
 	}
