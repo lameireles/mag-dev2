@@ -3273,7 +3273,7 @@ void Valves::openInput()
 {
 	PORTC_OUTSET = PIN1_bm;
 	input_open = true;
-    1760:	22 e1       	ldi	r18, 0x12	; 18
+    1760:	26 e0       	ldi	r18, 0x06	; 6
     1762:	20 93 41 06 	sts	0x0641, r18	; 0x800641 <__TEXT_REGION_LENGTH__+0x700641>
     1766:	e6 e4       	ldi	r30, 0x46	; 70
     1768:	f6 e0       	ldi	r31, 0x06	; 6
@@ -3281,7 +3281,7 @@ void Valves::openInput()
     176c:	20 83       	st	Z, r18
     176e:	dc 01       	movw	r26, r24
     1770:	1c 92       	st	X, r1
-    1772:	20 e1       	ldi	r18, 0x10	; 16
+    1772:	24 e0       	ldi	r18, 0x04	; 4
     1774:	20 83       	st	Z, r18
     1776:	11 96       	adiw	r26, 0x01	; 1
     1778:	1c 92       	st	X, r1
@@ -3292,8 +3292,8 @@ void Valves::openInput()
 
 void Valves::openOutput()
 {
-	PORTC_OUTSET = PIN4_bm;
-    177c:	20 e1       	ldi	r18, 0x10	; 16
+	PORTC_OUTSET = PIN2_bm;
+    177c:	24 e0       	ldi	r18, 0x04	; 4
     177e:	20 93 45 06 	sts	0x0645, r18	; 0x800645 <__TEXT_REGION_LENGTH__+0x700645>
 	output_open = true;
     1782:	21 e0       	ldi	r18, 0x01	; 1
@@ -3319,8 +3319,8 @@ void Valves::closeInput()
 
 void Valves::closeOutput()
 {
-	PORTC_OUTCLR = PIN4_bm;
-    1796:	20 e1       	ldi	r18, 0x10	; 16
+	PORTC_OUTCLR = PIN2_bm;
+    1796:	24 e0       	ldi	r18, 0x04	; 4
     1798:	20 93 46 06 	sts	0x0646, r18	; 0x800646 <__TEXT_REGION_LENGTH__+0x700646>
 	output_open = false;
     179c:	fc 01       	movw	r30, r24

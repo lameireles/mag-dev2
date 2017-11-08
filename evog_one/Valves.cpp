@@ -11,7 +11,7 @@
 
 Valves::Valves()
 {
-	PORTC_DIRSET = PIN1_bm|PIN4_bm;
+	PORTC_DIRSET = PIN1_bm|PIN2_bm;
 	closeInput();
 	closeOutput();
 }
@@ -28,7 +28,7 @@ void Valves::openInput()
 
 void Valves::openOutput()
 {
-	PORTC_OUTSET = PIN4_bm;
+	PORTC_OUTSET = PIN2_bm;
 	output_open = true;
 }
 
@@ -40,7 +40,7 @@ void Valves::closeInput()
 
 void Valves::closeOutput()
 {
-	PORTC_OUTCLR = PIN4_bm;
+	PORTC_OUTCLR = PIN2_bm;
 	output_open = false;
 }
 
@@ -52,6 +52,6 @@ void Valves::toggleInput()
 
 void Valves::toggleOutput()
 {
-	PORTC_OUTTGL = PIN4_bm;
+	PORTC_OUTTGL = PIN2_bm;
 	input_open = !input_open;
 }
