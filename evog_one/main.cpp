@@ -23,7 +23,7 @@ void flow_acq(Ms5525dso & myFlowSensor, Adca & myAdc, Tcc0 & myTimer, UsartE0 & 
 	{
 		Ms5525dso::data_s flowData = myFlowSensor.read();
 		uint16_t o2_counts = myAdc.readChannel(Adca::CH_0);
-		snprintf(Utils::txBuf, TX_LEN, "%.3f,%.4f,%.2f,%d\r\n",myTimer.getTime_ms(),flowData.pressure,flowData.temperature,o2_counts);
+		snprintf(Utils::txBuf, TX_LEN, "%.3f,%.4f,%.2f,%d\r\n", myTimer.getTime_ms(), flowData.pressure, flowData.temperature,o2_counts);
 		myUsart.sendString(Utils::txBuf);
 	}
 	myUsart.setRXC(false);
@@ -37,6 +37,7 @@ void start_test(Pump & myPump, Valves & myValves, Adca & myAdc, Tcc0 & myTimer, 
 	const uint8_t NUMBER_OF_READINGS = 16;
 	const uint16_t OUTPUT_OPEN_DURATIONS_ms = 5000;
 	
+	myUsart.sendString("sep=,\r\nTime [ms],O2 [counts]\r\n");
 	myPump.turnOn();
 	while (!(myUsart.isRXC()))
 	{
@@ -53,7 +54,7 @@ void start_test(Pump & myPump, Valves & myValves, Adca & myAdc, Tcc0 & myTimer, 
 		// Get sensor readings
 		uint32_t totalO2 = 0;
 		for (int i = 0; i < NUMBER_OF_READINGS; i++) totalO2 += myAdc.readChannel(Adca::CH_0);
-		snprintf(Utils::txBuf, TX_LEN, "O2 [counts] = %ld", totalO2/NUMBER_OF_READINGS);
+		snprintf(Utils::txBuf, TX_LEN, "%.3f,%ld\r\n", myTimer.getTime_ms(), totalO2/NUMBER_OF_READINGS);
 		myUsart.sendString(Utils::txBuf);
 		
 		// Open output for specified duration

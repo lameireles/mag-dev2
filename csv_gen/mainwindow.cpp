@@ -13,10 +13,11 @@ MainWindow::MainWindow(QWidget *parent) :
     serial = new QSerialPort(this);
     serial->setBaudRate(115200);
 
-    connect(ui->refresh_pb, SIGNAL(released()), this, SLOT(refresh()));
-    connect(ui->filepicker_pb, SIGNAL (released()), this, SLOT(filepicker()));
-    connect(ui->start_pb, SIGNAL(released()), this, SLOT(start()));
-    connect(ui->stop_pb, SIGNAL(released()), this, SLOT(stop()));
+    connect(ui->refresh_pb, &QPushButton::released, this, &MainWindow::refresh);
+    connect(ui->filepicker_pb, &QPushButton::released, this, &MainWindow::filepicker);
+    connect(ui->startA_pb, &QPushButton::released, this, [this]{start("a");});
+    connect(ui->startB_pb, &QPushButton::released, this, [this]{start("b");});
+    connect(ui->stop_pb, &QPushButton::released, this, &MainWindow::stop);
     connect(serial, &QSerialPort::readyRead, this, &MainWindow::readData);
 }
 
@@ -46,10 +47,10 @@ void MainWindow::filepicker()
     filename = QFileDialog::getSaveFileName(this,
         tr("Filename"), "",
         tr("CSV file (*.csv)"));
-    if (!filename.isEmpty()) ui->filename_le->setText(filename);
+    ui->filename_le->setText(filename);
 }
 
-void MainWindow::start()
+void MainWindow::start(const char* c)
 {
     file->setFileName(filename);
     if (!file->open(QIODevice::WriteOnly|QIODevice::Truncate)) {
@@ -66,21 +67,29 @@ void MainWindow::start()
         return;
     }
 
-    showStatusMessage(tr("Connected to %1").arg(serial->portName()));
-    ui->start_pb->setEnabled(false);
+    showStatusMessage(tr("Connected to %1 ('%2')").arg(serial->portName()).arg(c));
+    ui->startA_pb->setEnabled(false);
+    ui->startB_pb->setEnabled(false);
+    ui->refresh_pb->setEnabled(false);
+    ui->filepicker_pb->setEnabled(false);
+    ui->com_cb->setEnabled(false);
     ui->stop_pb->setEnabled(true);
-    serial->write("a");
+    serial->write(c);
 }
 
 void MainWindow::stop()
 {
-    serial->write("b");
+    serial->write("s");
     serial->flush();
     if (serial->isOpen()) serial->close();
     if (file->isOpen()) file->close();
     showStatusMessage(tr("Disconnected"));
     ui->stop_pb->setEnabled(false);
-    ui->start_pb->setEnabled(true);
+    ui->startA_pb->setEnabled(true);
+    ui->startB_pb->setEnabled(true);
+    ui->refresh_pb->setEnabled(true);
+    ui->filepicker_pb->setEnabled(true);
+    ui->com_cb->setEnabled(true);
 }
 
 void MainWindow::readData()
