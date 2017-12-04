@@ -99,6 +99,8 @@ void start_test(
 		last_flowData = flowData;
 	}
 	myPump.turnOff();
+	sampleValve.close();
+	outputValve.close();
 }
 
 Utils::gascal_s start_gascal(
