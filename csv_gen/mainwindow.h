@@ -29,6 +29,7 @@ private slots:
     void filepicker();
     void start(const char*);
     void stop();
+    void clear();
     void readData();
 };
 

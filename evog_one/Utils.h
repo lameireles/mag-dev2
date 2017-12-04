@@ -1,4 +1,4 @@
-/* 
+/*
 * Utils.h
 */
 
@@ -20,7 +20,7 @@ public:
 		SC_XOSC = 3,
 		SC_PLL = 4
 	};
-	
+
 	enum interruptLevel_e
 	{
 		IL_OFF = 0,
@@ -28,9 +28,15 @@ public:
 		IL_MEDIUM = 2,
 		IL_HIGH = 3
 	};
-	
+
+	struct gascal_s
+	{
+		double gain = 0;
+		double offset = 0;
+	};
+
 	static char txBuf[TX_LEN];
-	
+
 	static void setSystemClock(systemClock_e);
 	static void enableInterruptLevel(interruptLevel_e);
 	static void globalInterruptEnable();

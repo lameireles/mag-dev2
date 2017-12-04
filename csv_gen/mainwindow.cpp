@@ -17,7 +17,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->filepicker_pb, &QPushButton::released, this, &MainWindow::filepicker);
     connect(ui->startA_pb, &QPushButton::released, this, [this]{start("a");});
     connect(ui->startB_pb, &QPushButton::released, this, [this]{start("b");});
+    connect(ui->startC_pb, &QPushButton::released, this, [this]{start("c");});
+    connect(ui->startD_pb, &QPushButton::released, this, [this]{start("d");});
     connect(ui->stop_pb, &QPushButton::released, this, &MainWindow::stop);
+    connect(ui->clear_pb, &QPushButton::released, this, &MainWindow::clear);
     connect(serial, &QSerialPort::readyRead, this, &MainWindow::readData);
 }
 
@@ -70,6 +73,8 @@ void MainWindow::start(const char* c)
     showStatusMessage(tr("Connected to %1 ('%2')").arg(serial->portName()).arg(c));
     ui->startA_pb->setEnabled(false);
     ui->startB_pb->setEnabled(false);
+    ui->startC_pb->setEnabled(false);
+    ui->startD_pb->setEnabled(false);
     ui->refresh_pb->setEnabled(false);
     ui->filepicker_pb->setEnabled(false);
     ui->com_cb->setEnabled(false);
@@ -87,15 +92,24 @@ void MainWindow::stop()
     ui->stop_pb->setEnabled(false);
     ui->startA_pb->setEnabled(true);
     ui->startB_pb->setEnabled(true);
+    ui->startC_pb->setEnabled(true);
+    ui->startD_pb->setEnabled(true);
     ui->refresh_pb->setEnabled(true);
     ui->filepicker_pb->setEnabled(true);
     ui->com_cb->setEnabled(true);
 }
 
+void MainWindow::clear()
+{
+    ui->textBrowser->clear();
+}
+
 void MainWindow::readData()
 {
     if (file->isOpen()) {
-        file->write(serial->readAll());
+        QByteArray byteArray = serial->readAll();
+        ui->textBrowser->append(byteArray);
+        file->write(byteArray);
         file->flush();
     }
 }

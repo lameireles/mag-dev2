@@ -48,7 +48,7 @@ C_SRCS +=  \
 ../Utils.cpp \
 ../main.cpp \
 ../Usart.cpp \
-../Valves.cpp
+../Valve.cpp
 
 
 PREPROCESSING_SRCS += 
@@ -69,7 +69,7 @@ UsartE0.o \
 Utils.o \
 main.o \
 Usart.o \
-Valves.o
+Valve.o
 
 OBJS_AS_ARGS +=  \
 Adca.o \
@@ -83,7 +83,7 @@ UsartE0.o \
 Utils.o \
 main.o \
 Usart.o \
-Valves.o
+Valve.o
 
 C_DEPS +=  \
 Adca.d \
@@ -97,7 +97,7 @@ UsartE0.d \
 Utils.d \
 main.d \
 Usart.d \
-Valves.d
+Valve.d
 
 C_DEPS_AS_ARGS +=  \
 Adca.d \
@@ -111,7 +111,7 @@ UsartE0.d \
 Utils.d \
 main.d \
 Usart.d \
-Valves.d
+Valve.d
 
 OUTPUT_FILE_PATH +=evog_one.elf
 
@@ -155,7 +155,7 @@ LINKER_SCRIPT_DEP+=
 ./%.o: .././%.cpp
 	@echo Building file: $<
 	@echo Invoking: AVR8/GNU C Compiler : 5.4.0
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-g++.exe$(QUOTE) -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\XMEGAA_DFP\1.1.68\include"  -Os -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atxmega128a4u -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\XMEGAA_DFP\1.1.68\gcc\dev\atxmega128a4u" -c -std=c++11 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-g++.exe$(QUOTE) -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\XMEGAA_DFP\1.1.68\include"  -Os -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atxmega128a4u -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\XMEGAA_DFP\1.1.68\gcc\dev\atxmega128a4u" -c -std=c++14 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
 	@echo Finished building: $<
 	
 
