@@ -7,10 +7,12 @@
 #include "Pump.h"
 #include "Tcc0.h"
 #include "Twie.h"
+#include "UsartC1.h"
 #include "UsartE0.h"
 #include "Utils.h"
 #include "Valve.h"
 #include <avr/io.h>
+#include <math.h>
 #include <stdio.h>
 
 //=========================//
@@ -57,19 +59,26 @@ void start_test(
 	const uint16_t OUTPUT_CLOSE_DURATION_ms = 2500;
 	const uint16_t SAMPLE_PERIOD_ms = 5000;
 	const uint16_t OVERSAMPLE_COEFF = 1024;
-	const uint8_t BREATH_CYCLE_UP_THRESH = 8;
-	const uint8_t BREATH_CYCLE_DOWN_THRESH = 8;
-		
-	myUsart.sendString("sep=,\r\nTime [ms],O2 [%]\r\n");
-	uint8_t upCount = 0, downCount = 0;
+	const uint8_t ZERO_FLOW_NUMBER_OF_SAMPLES = 16;
+	const double FLOW_THRESHOLD = 0.075;
+	const double VE_GAIN = 1;
+	
+	// Zero-flow set
+	double zero_press = 0;
+	for (int i = 0; i < ZERO_FLOW_NUMBER_OF_SAMPLES; i++) {
+		Ms5525dso::data_s zero = myFlowSensor.read();
+		zero_press += zero.pressure/ZERO_FLOW_NUMBER_OF_SAMPLES;
+	}
+
+	myUsart.sendString("sep=,\r\nTime [ms],O2 [%], VE [l]\r\n");
+	double totalVE = 0;
 	double outputTimeFlag = myTimer.getTime_ms();
 	double sampleTimeFlag = myTimer.getTime_ms();
-	Ms5525dso::data_s last_flowData = myFlowSensor.read();
 	myPump.turnOn();
 	while (!(myUsart.isRXC()))
 	{
 		double timeNow = myTimer.getTime_ms();
-						
+								
 		// Handle output valve
 		if (outputValve.isOpen() && timeNow - outputTimeFlag > OUTPUT_OPEN_DURATION_ms) {
 			outputTimeFlag = timeNow;
@@ -83,20 +92,17 @@ void start_test(
 		if (timeNow - sampleTimeFlag > SAMPLE_PERIOD_ms) {
 			sampleTimeFlag = timeNow;
 			double o2_pct = o2_counts2pct(oversampleO2(OVERSAMPLE_COEFF, myAdc),gascal);
-			snprintf(Utils::txBuf, TX_LEN, "%.3f,%.3f\r\n", timeNow, o2_pct);
-			myUsart.sendString(Utils::txBuf);
+			double ve_l = VE_GAIN*totalVE;
+ 			snprintf(Utils::txBuf, TX_LEN, "%.3f,%.3f,%.3f\r\n", timeNow, o2_pct, ve_l);
+ 			myUsart.sendString(Utils::txBuf);
+			totalVE = 0;
 		}
 		
 		// Handle sample valve
-		Ms5525dso::data_s flowData = myFlowSensor.read();
-		if (flowData.pressure > last_flowData.pressure) {
-			downCount = 0;
-			if (!(sampleValve.isOpen()) && ++upCount > BREATH_CYCLE_UP_THRESH) sampleValve.open();
-		} else {
-			upCount = 0;
-			if (sampleValve.isOpen() && ++downCount > BREATH_CYCLE_DOWN_THRESH) sampleValve.close();
-		}
-		last_flowData = flowData;
+ 		Ms5525dso::data_s data = myFlowSensor.read();
+		totalVE += sqrt(data.pressure-zero_press);
+		if (data.pressure-zero_press> FLOW_THRESHOLD) sampleValve.open();
+		else sampleValve.close();
 	}
 	myPump.turnOff();
 	sampleValve.close();
@@ -113,11 +119,16 @@ Utils::gascal_s start_gascal(
 	Valve & outputValve)
 {
 	// USER DEFINED CONSTANTS
+//	const uint8_t NUMBER_OF_REPETITIONS = 7;
+// 	const uint16_t OUTPUT_OPEN_DURATION_ms = 5000;
+// 	const uint16_t OUTPUT_CLOSE_DURATION_ms = 5000;
+// 	const uint16_t SAMPLE_OPEN_DURATION_ms = 12000;
+// 	const uint16_t GASCAL_OPEN_DURATION_ms = 12000;
 	const uint8_t NUMBER_OF_REPETITIONS = 8;
 	const uint16_t OUTPUT_OPEN_DURATION_ms = 2500;
 	const uint16_t OUTPUT_CLOSE_DURATION_ms = 2500;
-	const uint16_t SAMPLE_OPEN_DURATION_ms = 15000;
-	const uint16_t GASCAL_OPEN_DURATION_ms = 15000;
+	const uint16_t SAMPLE_OPEN_DURATION_ms = 5000;
+	const uint16_t GASCAL_OPEN_DURATION_ms = 5000;
 	const uint16_t OVERSAMPLE_COEFF = 1024;
 	const double GASCAL_PCT = 17;
 	const double SAMPLE_PCT = 20.97;
@@ -137,7 +148,7 @@ Utils::gascal_s start_gascal(
 		if (outputValve.isOpen() && timeNow - outputTimeFlag > OUTPUT_OPEN_DURATION_ms) {
 			outputTimeFlag = timeNow;
 			outputValve.close();
-		} else if (!(outputValve.isOpen()) && timeNow - outputTimeFlag > OUTPUT_CLOSE_DURATION_ms) {
+		} else if (outputValve.isClosed() && timeNow - outputTimeFlag > OUTPUT_CLOSE_DURATION_ms) {
 			outputTimeFlag = timeNow;
 			outputValve.open();
 		}
@@ -162,10 +173,12 @@ Utils::gascal_s start_gascal(
 	outputValve.close();
 
 	// Output gascal coefficients
+	snprintf(Utils::txBuf, TX_LEN, "avgSample: %.3f counts\r\navgGascal: %.3f counts\r\n", avgSample, avgGascal);
+	myUsart.sendString(Utils::txBuf);
 	Utils::gascal_s result;
 	result.gain = (SAMPLE_PCT - GASCAL_PCT)/(avgSample-avgGascal);
 	result.offset = SAMPLE_PCT - result.gain*avgSample;
-	snprintf(Utils::txBuf, TX_LEN, "Gain: %.3f Offset: %.3f\r\n", result.gain, result.offset);
+	snprintf(Utils::txBuf, TX_LEN, "Gain: %.3f[%%/counts]\r\nOffset: %.3f%%\r\n", result.gain, result.offset);
 	myUsart.sendString(Utils::txBuf);
 	return result;
 }
@@ -181,10 +194,14 @@ Utils::gascal_s start_aircal(
 	Valve & outputValve)
 {
 	// USER DEFINED CONSTANTS
+	//const uint8_t NUMBER_OF_REPETITIONS = 7;
+	//const uint16_t OUTPUT_OPEN_DURATION_ms = 12000;
+	//const uint16_t OUTPUT_CLOSE_DURATION_ms = 12000;
+	//const uint16_t SAMPLE_PERIOD_ms = 15000;
 	const uint8_t NUMBER_OF_REPETITIONS = 8;
 	const uint16_t OUTPUT_OPEN_DURATION_ms = 2500;
 	const uint16_t OUTPUT_CLOSE_DURATION_ms = 2500;
-	const uint16_t SAMPLE_PERIOD_ms = 15000;
+	const uint16_t SAMPLE_PERIOD_ms = 5000;
 	const uint16_t OVERSAMPLE_COEFF = 1024;
 	const double SAMPLE_PCT = 20.97;
 
@@ -202,12 +219,12 @@ Utils::gascal_s start_aircal(
 		if (outputValve.isOpen() && timeNow - outputTimeFlag > OUTPUT_OPEN_DURATION_ms) {
 			outputTimeFlag = timeNow;
 			outputValve.close();
-		} else if (!(outputValve.isOpen()) && timeNow - outputTimeFlag > OUTPUT_CLOSE_DURATION_ms) {
+		} else if (outputValve.isClosed() && timeNow - outputTimeFlag > OUTPUT_CLOSE_DURATION_ms) {
 			outputTimeFlag = timeNow;
 			outputValve.open();
 		}
 		
-		// Handle sample and gascal valve
+		// Handle sample
 		if (timeNow - targetTimeFlag > SAMPLE_PERIOD_ms) {
 			targetTimeFlag = timeNow;
 			avgSample += oversampleO2(OVERSAMPLE_COEFF, myAdc)/NUMBER_OF_REPETITIONS;
@@ -219,10 +236,12 @@ Utils::gascal_s start_aircal(
 	outputValve.close();
 
 	// Output aircal coefficients
+	snprintf(Utils::txBuf, TX_LEN, "avgSample: %.3f counts\r\n", avgSample);
+	myUsart.sendString(Utils::txBuf);
 	Utils::gascal_s result;
 	result.gain = gascal_gain;
 	result.offset = SAMPLE_PCT - result.gain*avgSample;
-	snprintf(Utils::txBuf, TX_LEN, "Gain: %.3f Offset: %.3f\r\n", result.gain, result.offset);
+	snprintf(Utils::txBuf, TX_LEN, "Gain: %.3f[%%/counts]\r\nOffset: %.3f%%\r\n", result.gain, result.offset);
 	myUsart.sendString(Utils::txBuf);
 	return result;
 }
@@ -236,44 +255,21 @@ int main(void)
 	Utils::setSystemClock(Utils::SC_32M); // 32MHz internal oscillator
 
 	UsartE0 myUsart0(Usart::BAUD_115k2, Utils::IL_MEDIUM);
-	myUsart0.sendString("\r\n");
-	myUsart0.sendString("+-------------------------------+\r\n");
-	myUsart0.sendString("| Hello World! This is USARTE0! |\r\n");
-	myUsart0.sendString("+-------------------------------+\r\n");
-
-	myUsart0.sendString("Enabling Interrupts... ");
+	UsartC1 myUsart1(Usart::BAUD_9k6, Utils::IL_MEDIUM);
+	
 	Utils::enableInterruptLevel(Utils::IL_MEDIUM);
 	Utils::enableInterruptLevel(Utils::IL_HIGH);
 	Utils::globalInterruptEnable();
-	myUsart0.sendString("DONE!\r\n");
 
-	myUsart0.sendString("Initializing TCC0... ");
 	Tcc0 myTimer(Tcc0::CS_DIV1, 2.048, Utils::IL_HIGH); // timeIncrement = 65536/32MHz
-	myUsart0.sendString("DONE!\r\n");
-
-	myUsart0.sendString("Initializing TWIE... ");
-	Twie myTwie(155, Twie::IBT_50US, &myUsart0); // 155 = 100 kHz
-	myUsart0.sendString("DONE!\r\n");
-
-	myUsart0.sendString("Initializing ADC... ");
+	Twie myTwie(155, Twie::IBT_50US); // 155 = 100 kHz
 	Adca myAdc(Adca::P_DIV512, Utils::IL_HIGH);
-	myUsart0.sendString("DONE!\r\n");
-
-	myUsart0.sendString("Initializing Flow Sensor...\r\n");
 	Ms5525dso myFlowSensor(Ms5525dso::OSR4096, 0x76, &myTwie, &myUsart0);
-	myUsart0.sendString("DONE!\r\n");
-
-	myUsart0.sendString("Initializing Pump... ");
 	Pump myPump;
-	myUsart0.sendString("DONE!\r\n");
-
-	myUsart0.sendString("Initializing Valves... ");
 	Valve sampleValve(1<<1);
 	Valve gascalValve(1<<2);
 	Valve outputValve(1<<4);
-	myUsart0.sendString("DONE!\r\n");
 
-	// Utils::gascal_s gascal;
 	Utils::gascal_s gascal = {0.415,-67.522};
 	while (true)
 	{

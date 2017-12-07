@@ -39,8 +39,8 @@ private:
 	
 public:	
 	struct data_s {
-		double pressure;
-		double temperature;
+		double pressure = 0;
+		double temperature = 0;
 	};
 
 	static const osr_s OSR256;

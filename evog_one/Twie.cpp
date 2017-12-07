@@ -10,12 +10,11 @@
 //=== CONSTRUCTOR ===//
 //===================//
 
-Twie::Twie(uint8_t baudRate, ibt_e inactiveBusTimeout, UsartE0* myUsart)
+Twie::Twie(uint8_t baudRate, ibt_e inactiveBusTimeout)
 {
 	this->baudRate = baudRate;
 	this->inactiveBusTimeout = inactiveBusTimeout;
-	this->myUsart = myUsart;
-	
+
 	setBaudRate(baudRate);
 	setInactiveBusTimeout(inactiveBusTimeout);
 	enableSmartMode();
@@ -52,14 +51,16 @@ Twie::error_e Twie::getErrorStatus()
 
 void Twie::errorHandler(const char* str)
 {
-	myUsart->sendString(str);
-	myUsart->sendString("Error status: ");
-	switch (getErrorStatus()) {
-		case Twie::ERR_RXACK: myUsart->sendString("RXACK\r\n"); break;
-		case Twie::ERR_ARBLOST: myUsart->sendString("ARBLOST\r\n"); break;
-		case Twie::ERR_BUSERR: myUsart->sendString("BUSERR\r\n"); break;
-		case Twie::ERR_UNKNOWN: myUsart->sendString("UNKNOWN\r\n"); break;
-	}
+	// TODO: redirect to debug
+	
+// 	myUsart->sendString(str);
+// 	myUsart->sendString("Error status: ");
+// 	switch (getErrorStatus()) {
+// 		case Twie::ERR_RXACK: myUsart->sendString("RXACK\r\n"); break;
+// 		case Twie::ERR_ARBLOST: myUsart->sendString("ARBLOST\r\n"); break;
+// 		case Twie::ERR_BUSERR: myUsart->sendString("BUSERR\r\n"); break;
+// 		case Twie::ERR_UNKNOWN: myUsart->sendString("UNKNOWN\r\n"); break;
+// 	}
 }
 
 //================//

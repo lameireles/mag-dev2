@@ -18,6 +18,7 @@ public:
 	void close();
 	void toggle();
 	bool isOpen() {return open_b;};
+	bool isClosed() {return !open_b;};
 };
 
 #endif //__VALVE_H__

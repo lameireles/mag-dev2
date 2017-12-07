@@ -5,7 +5,6 @@
 #ifndef __TWIE_H__
 #define __TWIE_H__
 
-#include "UsartE0.h"
 #include "Utils.h"
 #include <stdint.h>
 
@@ -64,7 +63,7 @@ public:
 //=== CONSTRUCTOR ===//
 //===================//
 public:
-	Twie(uint8_t, ibt_e, UsartE0*);
+	Twie(uint8_t, ibt_e);
 	
 //========================//
 //=== PUBLIC FUNCTIONS ===//
@@ -93,7 +92,6 @@ private:
 	bool quickCommand, smartMode;
 	acknowledgeAction_e acknowledgeAction;
 	uint8_t baudRate;
-	UsartE0* myUsart;
 
 //================//
 //=== ENABLERS ===//
