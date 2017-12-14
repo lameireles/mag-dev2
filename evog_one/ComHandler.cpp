@@ -44,7 +44,7 @@ ComHandler::ComHandler(state_e state, Tcc0* myTimer0, UsartE0* myUsart0, UsartC1
 
 void ComHandler::handle(char c, com_e com)
 {
-	com = com;
+	ComHandler::com = com;
 	if ((c >> 4) == 0x0A) questionHandler((question_e)c); // Questions commands
 	else if ((c >> 4) == 0x0C) changeHandler((change_e)c); // Change states
 	else if (c == '\r') ; // ignore
