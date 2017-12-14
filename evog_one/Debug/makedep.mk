@@ -12,6 +12,8 @@ Pump.cpp
 
 Tcc0.cpp
 
+TestHandler.cpp
+
 Twie.cpp
 
 UsartC1.cpp

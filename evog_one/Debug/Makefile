@@ -42,6 +42,7 @@ C_SRCS +=  \
 ../Ms5525dso.cpp \
 ../Pump.cpp \
 ../Tcc0.cpp \
+../TestHandler.cpp \
 ../Twie.cpp \
 ../UsartC1.cpp \
 ../UsartE0.cpp \
@@ -63,6 +64,7 @@ ComHandler.o \
 Ms5525dso.o \
 Pump.o \
 Tcc0.o \
+TestHandler.o \
 Twie.o \
 UsartC1.o \
 UsartE0.o \
@@ -77,6 +79,7 @@ ComHandler.o \
 Ms5525dso.o \
 Pump.o \
 Tcc0.o \
+TestHandler.o \
 Twie.o \
 UsartC1.o \
 UsartE0.o \
@@ -91,6 +94,7 @@ ComHandler.d \
 Ms5525dso.d \
 Pump.d \
 Tcc0.d \
+TestHandler.d \
 Twie.d \
 UsartC1.d \
 UsartE0.d \
@@ -105,6 +109,7 @@ ComHandler.d \
 Ms5525dso.d \
 Pump.d \
 Tcc0.d \
+TestHandler.d \
 Twie.d \
 UsartC1.d \
 UsartE0.d \
@@ -127,6 +132,8 @@ LINKER_SCRIPT_DEP+=
 
 
 # AVR32/GNU C Compiler
+
+
 
 
 

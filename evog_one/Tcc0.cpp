@@ -2,6 +2,7 @@
 * Tcc0.cpp
 */
 
+#include "ComHandler.h"
 #include "Tcc0.h"
 #include <avr/interrupt.h>
 #include <avr/io.h>
@@ -16,6 +17,7 @@ volatile double Tcc0::timeIncrement_ms = 0;
 ISR(TCC0_OVF_vect)
 {
 	Tcc0::time_ms += Tcc0::timeIncrement_ms;
+	ComHandler::update();
 }
 
 //===================//

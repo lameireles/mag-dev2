@@ -21,12 +21,11 @@ const Ms5525dso::osr_s Ms5525dso::OSR4096 = {8,9040};
 //=== CONSTRUCTOR ===//
 //===================//
 
-Ms5525dso::Ms5525dso(osr_s osr, uint8_t address, Twie* myTwie, UsartE0* myUsart)
+Ms5525dso::Ms5525dso(osr_s osr, uint8_t address, Twie* myTwie)
 {
 	this->osr = osr;
 	this->address = address;
 	this->myTwie = myTwie;
-	this->myUsart = myUsart;
 	
 	reset();
 	readPROM();
@@ -65,7 +64,6 @@ uint16_t Ms5525dso::readCoef(coef_e c)
 	
 	int i = (c-0xA0)/2;
 	snprintf(Utils::txBuf,TX_LEN,"\tC%d: %u (0x%04x)\tQ%u: %d\r\n",i,temp,temp,i,Qs[i-1]);
-	myUsart->sendString(Utils::txBuf);
 	
 	return temp;
 }
@@ -77,9 +75,7 @@ uint16_t Ms5525dso::readCoef(coef_e c)
 void Ms5525dso::reset()
 {
 	const char err[] = "Error: could not reset flow sensor.";
-	
-	myUsart->sendString("\tResetting Flow Sensor... ");
-	
+		
 	myTwie->setAddress(address, Twie::DIR_WRITE);
 	if (myTwie->isError()) {
 		myTwie->setCommand(Twie::COM_STOP, Twie::AA_NACK);
@@ -92,23 +88,18 @@ void Ms5525dso::reset()
 		myTwie->errorHandler(err);
 		return;
 	}
-	Utils::delay_ms(3);
 	
-	myUsart->sendString("DONE!\r\n");
+	Utils::delay_ms(3);
 }
 
 void Ms5525dso::readPROM()
 {
-	myUsart->sendString("\tReading Flow Sensor PROM...\r\n");
-	
 	C1 = readCoef(C1_addr);
 	C2 = readCoef(C2_addr);
 	C3 = readCoef(C3_addr);
 	C4 = readCoef(C4_addr);
 	C5 = readCoef(C5_addr);
 	C6 = readCoef(C6_addr);
-	
-	myUsart->sendString("\tDONE!\r\n");
 }
 
 void Ms5525dso::convertPressure()

@@ -30,7 +30,6 @@ private:
 	osr_s osr;
 	uint8_t address;
 	Twie* myTwie;
-	UsartE0* myUsart;
 	uint16_t C1, C2, C3, C4, C5, C6;
 	uint8_t Q1 = 14, Q2 = 16, Q3 = 7, Q4 = 5, Q5 = 7, Q6 = 21;
 	uint8_t Qs[6] = {Q1, Q2, Q3, Q4, Q5, Q6};
@@ -49,7 +48,7 @@ public:
 	static const osr_s OSR2048;
 	static const osr_s OSR4096;
 
-	Ms5525dso(osr_s, uint8_t, Twie*, UsartE0*);
+	Ms5525dso(osr_s, uint8_t, Twie*);
 	void reset();
 	void readPROM();	
 	void convertPressure();

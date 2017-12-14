@@ -7,7 +7,11 @@
 
 #include "Pump.h"
 #include "Tcc0.h"
+#include "TestHandler.h"
+#include "UsartC1.h"
 #include "UsartE0.h"
+
+#define RX_LEN 64
 
 class ComHandler
 {
@@ -22,22 +26,14 @@ private:
 	};
 
 	enum change_e {
-		CHANGE_TO_DATA_SAMPLE = 0xC8,
+		CHANGE_TO_HEATING = 0xC0,
 		CHANGE_TO_AUTOCAL = 0xC1,
 		CHANGE_TO_GASCAL = 0xC2,
+		CHANGE_TO_DATA_SAMPLE = 0xC8,
 		CHANGE_TO_VVM = 0xC9,
 		CHANGE_START_VVM = 0xCA,
-		CHANGE_START_DATA_SAMPLE = 0xCB
-	};
-
-	enum duration_e {
-		HEATING_DURATION_s = 0,
-		DATA_SAMPLE_PERIOD_s = 5,
-		DATA_SAMPLE_DURATION_s = 150,
-		AUTOCAL_DURATION_s = 10,
-		GASCAL_DURATION_s = 10,
-		VVM_PERIOD_s = 2,
-		VVM_DURATION_s = 12
+		CHANGE_START_DATA_SAMPLE = 0xCB,
+		CHANGE_STOP_DATA_SAMPLE = 0xCF
 	};
 
 	enum error_e {
@@ -49,6 +45,8 @@ private:
 		CHANGED_TO_IDLEVVM = 0xF9
 	};
 
+public:
+
 	enum state_e {
 		IDLE = 0,
 		HEATING = 1,
@@ -57,34 +55,34 @@ private:
 		DATA_SAMPLE = 4,
 		VVM = 5
 	};
+
+	enum com_e {
+		USART0,
+		USART1
+	};
+
+private:
 	
-	state_e state;
-	int sampleIndex;
-	double timeFlag1;
-	double timeFlag2;
-	double gascal_o2;
-	double gascal_co2;
+	static volatile state_e state;
+	static volatile com_e com;
+	static double timeFlag_ms;
+	static char rxBuf[RX_LEN];
 	
-	Pump* myPump;
-	Tcc0* myTimer0;
-	UsartE0* myUsart0;
+	static Tcc0* myTimer0;
+	static UsartE0* myUsart0;
+	static UsartC1* myUsart1;
 	
-	#define COMHANDLER_BUFLEN 64
-	char responseBuf[COMHANDLER_BUFLEN];
-	char receiveBuf[COMHANDLER_BUFLEN];
-	
-	const double MIN_O2 = 0;
-	const double MAX_O2 = 100;
-	const double MIN_CO2 = 0;
-	const double MAX_CO2 = 100;
-	
+	char fetchData();
 	void questionHandler(question_e);
 	void changeHandler(change_e);
 	
 public:
-	ComHandler(Pump*, Tcc0*, UsartE0*);
-	char* handle(char);
-	void update();
+
+	ComHandler(state_e, Tcc0*, UsartE0*, UsartC1*);
+	void handle(char, com_e);
+	
+	static void update();
+	static void sendAnswer();
 };
 
 #endif //__COMHANDLER_H__
