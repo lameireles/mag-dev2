@@ -135,7 +135,7 @@ void TestHandler::start_test()
 			sampleTimeFlag = timeNow_ms;
 			double o2_pct = o2_counts2pct(oversampleO2(OVERSAMPLE_COEFF));
 			double ve_l = VE_GAIN*totalVE;
-			snprintf(Utils::txBuf, TX_LEN, "%04d;%03d;%02.2f;%01.2f;%01.2f;%02.2f;%02.2f;%01.2f\r\n", (int)(timeNow_ms/1000), 0, ve_l, 0., 0., o2_pct, 0., 0.);
+			snprintf(Utils::txBuf, TX_LEN, "%04d;%03d;%02.2f;%01.2f;%01.2f;%02.2f;%02.2f;%01.2f\r\n", (int)(timeNow_ms/1000), 0, ve_l, 0., 0., ve_l*6, o2_pct, 0.);
 			ComHandler::sendAnswer();
 			totalVE = 0;
 		}
